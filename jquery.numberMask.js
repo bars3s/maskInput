@@ -17,9 +17,10 @@ $.fn.numberMask = function (options) {
                 var isValid = (settings.allowNegative && value === '-') || regExp.test(value);
 
                 if (isValid && settings.replaceCommaPoint && c === ',') {
-                    setTimeout(function(){
+                    setTimeout(function () {
+                        var selectionParamAfter = getSelection(e.target);
                         e.target.value = value.replace(',', '.');
-                        setSelectionRange(e.target, selectionParam.start, selectionParam.end);
+                        setSelectionRange(e.target, selectionParamAfter.start, selectionParamAfter.end);
                     }, 0);
                 }
 
