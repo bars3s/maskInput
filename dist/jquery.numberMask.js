@@ -23,7 +23,7 @@
 $.fn.numberMask = function (options) {
     var settings = {
             type: 'int', beforePoint: 10, afterPoint: 2, defaultValueInput: 0,
-            allowNegative: false, decimalMark: ['.'], pattern: ''
+            allowNegative: false, decimalMark: ['.'], pattern: '', replaceCommaPoint: false
         },
         regExp,
         onKeyPress = function (e) {
@@ -36,7 +36,16 @@ $.fn.numberMask = function (options) {
                 var value = e.target.value;
                 var selectionParam = getSelection(e.target);
                 value = value.substring(0, selectionParam.start) + c + value.substring(selectionParam.end);
-                return (settings.allowNegative && value === '-') || regExp.test(value);
+                var isValid = (settings.allowNegative && value === '-') || regExp.test(value);
+
+                if (isValid && settings.replaceCommaPoint && c === ',') {
+                    setTimeout(function(){
+                        e.target.value = value.replace(',', '.');
+                        setSelectionRange(e.target, selectionParam.start, selectionParam.end);
+                    }, 0);
+                }
+
+                return isValid;
             }
         },
         onKeyUp = function (e) {
@@ -93,6 +102,19 @@ $.fn.numberMask = function (options) {
                 statusSelection: statusSelection
             };
         },
+        setSelectionRange = function (input, selectionStart, selectionEnd) {
+            if (input.setSelectionRange) {
+                input.focus();
+                input.setSelectionRange(selectionStart, selectionEnd);
+            }
+            else if (input.createTextRange) {
+                var range = input.createTextRange();
+                range.collapse(true);
+                range.moveEnd('character', selectionEnd);
+                range.moveStart('character', selectionStart);
+                range.select();
+            }
+        },
         onBlur = function (e) {
             var input = $(e.target);
             if (input.val() != '') {
@@ -125,6 +147,13 @@ $.fn.numberMask = function (options) {
 
         $.extend(settings, options);
     }
+
+    if (settings.replaceCommaPoint) {
+        if(settings.decimalMark.indexOf(',') !== -1){
+            settings.decimalMark.push(',');
+        }
+    }
+
     if ((typeof settings.pattern == "object") && (settings.pattern instanceof RegExp)) {
         regExp = settings.pattern;
     } else {
